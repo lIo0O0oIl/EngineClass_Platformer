@@ -1,3 +1,4 @@
+using GlobalType;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -8,6 +9,7 @@ public class characterController2D : MonoBehaviour
     public LayerMask layerMask;
 
     public bool below;
+    public GroundType groundType;
 
     private Vector2 _moveAmount;
     private Vector2 _currentPosition;
@@ -18,6 +20,8 @@ public class characterController2D : MonoBehaviour
 
     Vector2[] _raycastPosition = new Vector2[3];
     RaycastHit2D[] _raycastHits = new RaycastHit2D[3];
+
+    private bool _disableGroundCheck;
 
     // Start is called before the first frame update
     void Start()
@@ -36,7 +40,10 @@ public class characterController2D : MonoBehaviour
 
         _moveAmount = Vector2.zero;
 
-        CheckGrounded();
+        if (!_disableGroundCheck)
+        {
+            CheckGrounded();
+        }
     }
 
     public void Move(Vector2 movement)
@@ -63,6 +70,7 @@ public class characterController2D : MonoBehaviour
             {
                 _raycastHits[i] = hit;
                 numberofGroundHits++;
+                groundType = DetermineGroundType(hit.collider);
             }
         }
 
@@ -73,7 +81,16 @@ public class characterController2D : MonoBehaviour
         else
         {
             below = false;
+            groundType = GroundType.none;
         }
+    }
+
+    private GroundType DetermineGroundType(Collider2D collider)
+    {
+        GroundEffector groundEffector = collider.GetComponent<GroundEffector>();
+
+        if (groundEffector != null) return groundEffector.groundType;
+        else return GroundType.LevelGeometry;
     }
 
     private void DrawDebugRays(Vector3 direction, Color color)
@@ -82,6 +99,19 @@ public class characterController2D : MonoBehaviour
         {
             Debug.DrawRay(_raycastPosition[i], direction * raycastDistance, color);
         }
+    }
+
+    public void DisableGroundCheck()
+    {
+        below = false;
+        _disableGroundCheck = true;
+        StartCoroutine("EnableGroundCheck");
+    }
+
+    IEnumerator EnableGroundCheck()
+    {
+        yield return new WaitForSeconds(.1f);
+        _disableGroundCheck = false;
     }
 
 
