@@ -10,11 +10,13 @@ public class characterController2D : MonoBehaviour
     public float slopeAngleLimit = 45f;
 
     public bool below;
+    public bool above;
+    public bool left;
+    public bool right;
     public GroundType groundType;
 
-    // 나중에 프라이베이트 고칠 예정
-    public Vector2 _slopeNormal;
-    public float _slopArgle;
+    private Vector2 _slopeNormal;
+    private float _slopArgle;
 
     private Vector2 _moveAmount;
     private Vector2 _currentPosition;
@@ -57,11 +59,55 @@ public class characterController2D : MonoBehaviour
         {
             CheckGrounded();
         }
+
+        CheckOtherCollision();
     }
 
     public void Move(Vector2 movement)
     {
         _moveAmount += movement;
+    }
+
+    private void CheckOtherCollision()
+    {
+        //left check
+        RaycastHit2D leftHit = Physics2D.BoxCast(_capsuleCollider.bounds.center, _capsuleCollider.size * 0.7f,
+            0f, Vector2.left, raycastDistance, layerMask);
+
+        if (leftHit.collider)
+        {
+            left = true;
+        }
+        else
+        {
+            left = false;
+        }
+
+        //right check
+        RaycastHit2D rightHit = Physics2D.BoxCast(_capsuleCollider.bounds.center, _capsuleCollider.size * 0.7f,
+            0f, Vector2.right, raycastDistance, layerMask);
+
+        if (rightHit.collider)
+        {
+            right = true;
+        }
+        else
+        {
+            right = false;
+        }
+
+        //above check 위쪽
+        RaycastHit2D aboveHit = Physics2D.CapsuleCast(_capsuleCollider.bounds.center, _capsuleCollider.size, CapsuleDirection2D.Vertical,
+            0f, Vector2.up, raycastDistance, layerMask);
+
+        if (aboveHit.collider)
+        {
+            above = true;
+        }
+        else
+        {
+            above = false;
+        }
     }
 
     public void CheckGrounded()
@@ -91,6 +137,7 @@ public class characterController2D : MonoBehaviour
             below = false;
         }
 
+        #region 전 코드
         /*Vector2 raycastOrgin = _rigidbody.position - new Vector2(0, _capsuleCollider.size.y * .5f);
 
         _raycastPosition[0] = raycastOrgin + (Vector2.left * _capsuleCollider.size.x * .25f + Vector2.up * .1f);
@@ -137,6 +184,7 @@ public class characterController2D : MonoBehaviour
             below = false;
             groundType = GroundType.none;
         }*/
+        #endregion
     }
 
     private GroundType DetermineGroundType(Collider2D collider)

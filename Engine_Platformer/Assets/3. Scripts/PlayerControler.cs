@@ -26,6 +26,15 @@ public class PlayerControler : MonoBehaviour
     {
         _moveDirection.x = _input.x * walkSpeed;
 
+        if (_moveDirection.x < 0f)  //왼쪽 이동
+        {
+            transform.rotation = Quaternion.Euler(0f, 180f, 0f);
+        }
+        else if (_moveDirection.x > 0f) // 오른쪽 이동
+        {
+            transform.rotation = Quaternion.Euler(0f, 0f, 0f);
+        }
+
         if (_characterController.below) // on the ground
         {
             _moveDirection.y = 0;
@@ -37,7 +46,7 @@ public class PlayerControler : MonoBehaviour
                 _characterController.DisableGroundCheck();
             }
         }
-        else   // on the air
+        else   // in the air
         {
             if (_releaseJump)
             {
@@ -45,13 +54,22 @@ public class PlayerControler : MonoBehaviour
 
                 if (_moveDirection.y > 0f)
                 {
-                    _moveDirection.y *= .5f;
+                    _moveDirection.y *= 0.5f;
                 }
             }
-            _moveDirection.y -= gravity * Time.deltaTime;
+            CravityCalculation();
         }
 
         _characterController.Move(_moveDirection * Time.deltaTime);
+    }
+
+    private void CravityCalculation()
+    {
+        if (_moveDirection.y > 0f && _characterController.above)
+        {
+            _moveDirection.y = 0f;
+        }
+        _moveDirection.y -= gravity * Time.deltaTime;
     }
 
     public void OnMovement(InputAction.CallbackContext context)
