@@ -14,12 +14,14 @@ public class PlayerControler : MonoBehaviour
     public float tripleJumpSpeed = 10f;
     public float xWallJumpSpeed = 15f;
     public float yWallJumpSpeed = 15f;
+    public float wallRunSpeed = 8f;
 
     //Player Abilities
     [Header("Player Abilities")]
     public bool canDoubleJump;
     public bool canTripleJump;
     public bool canWallJump;
+    public bool canWallRun;
 
     //Player states
     [Header("Player States")]
@@ -27,6 +29,7 @@ public class PlayerControler : MonoBehaviour
     public bool isDoubleJumping;
     public bool isTripleJumping;
     public bool isWallJumping;
+    public bool isWallRunning;
 
     //input flags
     bool _startJump;
@@ -35,6 +38,8 @@ public class PlayerControler : MonoBehaviour
     private Vector2 _input;
     private Vector2 _moveDirection;
     private characterController2D _characterController;
+
+    private bool _ableToWallRun;
 
     void Start()
     {
@@ -65,12 +70,14 @@ public class PlayerControler : MonoBehaviour
             isDoubleJumping = false;
             isTripleJumping = false;
             isWallJumping = false;
+            isWallRunning = false;
 
             if (_startJump == true)
             {
                 _startJump = false;
                 isJumping = true;
                 _moveDirection.y = jumpSpeed;
+                _ableToWallRun = true;
                 _characterController.DisableGroundCheck();
             }
         }
@@ -84,10 +91,12 @@ public class PlayerControler : MonoBehaviour
                 {
                     _moveDirection.y *= 0.5f;
                 }
+
+                //isWallRunning = false;
             }
 
             //pressed jump button in the air
-            if (_startJump )//&& !isDoubleJumping)  //이건 내가 쓴 코드
+            if (_startJump )
             {
                 //triple jump
                 if (canTripleJump && !_characterController.right && !_characterController.left)
@@ -132,25 +141,19 @@ public class PlayerControler : MonoBehaviour
                     //isWallJumping = true;
                     StartCoroutine("WallJumpWaiter");
                 }
-
-
                 _startJump = false;
             }
 
-            /*if (_startJump && isDoubleJumping)    //내가 쓴 코드
+            //Running Wall
+            if (canWallRun && (_characterController.left || _characterController.right))
             {
-                //triple jump
-                if (canDoubleJump && canTripleJump && isDoubleJumping && !_characterController.right && !_characterController.left)
+                if (_input.y > 0f && _ableToWallRun)
                 {
-                    if (!isTripleJumping)
-                    {
-                        Debug.Log("3번점프");
-                        _moveDirection.y = tripleJumpSpeed;
-                        isTripleJumping = true;
-                    }
+                    _moveDirection.y = wallRunSpeed;
                 }
-                _startJump = false;
-            }*/
+
+                StartCoroutine("WallRunWaiter");
+            }
 
             CravityCalculation();
         }
@@ -195,6 +198,14 @@ public class PlayerControler : MonoBehaviour
         isWallJumping = true;
         yield return new WaitForSeconds(0.4f);
         isWallJumping = false;
+    }
+
+    IEnumerator WallRunWaiter()
+    {
+        isWallRunning = true;
+        yield return new WaitForSeconds(0.5f);
+        isWallRunning = false;
+        _ableToWallRun = false; //이거 안되는데 이게 뭐지 미친
     }
 
 

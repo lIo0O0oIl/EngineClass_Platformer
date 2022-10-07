@@ -749,7 +749,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_BackGroundColor: {r: 0.3964934, g: 0.48443988, b: 0.6226415, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -1331,13 +1331,16 @@ MonoBehaviour:
   tripleJumpSpeed: 10
   xWallJumpSpeed: 15
   yWallJumpSpeed: 15
+  wallRunSpeed: 10
   canDoubleJump: 1
   canTripleJump: 1
   canWallJump: 1
+  canWallRun: 1
   isJumping: 0
   isDoubleJumping: 0
   isTripleJumping: 0
   isWallJumping: 0
+  isWallRunning: 0
 --- !u!114 &972601548
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1987,7 +1990,7 @@ MonoBehaviour:
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
     GateFit: 2
-    m_SensorSize: {x: 1.7798165, y: 1}
+    m_SensorSize: {x: 1.7781065, y: 1}
   m_Transitions:
     m_BlendHint: 0
     m_InheritPosition: 0
