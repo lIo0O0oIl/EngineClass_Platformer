@@ -8,6 +8,7 @@ public class PlayerControler : MonoBehaviour
     //Player properties
     [Header("Player Propertise")]   //인스펙터 창에 나오는 변수 정리
     public float walkSpeed = 10f;
+    public float creepSpeed = 5f;
     public float gravity = 20f;
     public float jumpSpeed = 15f;
     public float doubleJumpSpeed = 10f;
@@ -15,6 +16,7 @@ public class PlayerControler : MonoBehaviour
     public float xWallJumpSpeed = 15f;
     public float yWallJumpSpeed = 15f;
     public float wallRunSpeed = 8f;
+    public float wallSlideAmout = 0.1f;
 
     //Player Abilities
     [Header("Player Abilities")]
@@ -22,6 +24,7 @@ public class PlayerControler : MonoBehaviour
     public bool canTripleJump;
     public bool canWallJump;
     public bool canWallRun;
+    public bool canWallSlide;
 
     //Player states
     [Header("Player States")]
@@ -30,6 +33,9 @@ public class PlayerControler : MonoBehaviour
     public bool isTripleJumping;
     public bool isWallJumping;
     public bool isWallRunning;
+    public bool isWallSliding;
+    public bool isDucking;
+    public bool isCreeping;
 
     //input flags
     bool _startJump;
@@ -39,11 +45,18 @@ public class PlayerControler : MonoBehaviour
     private Vector2 _moveDirection;
     private characterController2D _characterController;
 
+    private CapsuleCollider2D _capsuleCollider;
+    private SpriteRenderer _spriteRenderer;
+    private Vector2 _originalColliderSize;
+
     private bool _ableToWallRun;
 
     void Start()
     {
         _characterController = GetComponent<characterController2D>();
+        _capsuleCollider = GetComponent<CapsuleCollider2D>();
+        _originalColliderSize = _capsuleCollider.size;
+        _spriteRenderer = GetComponent<SpriteRenderer>();
     }
 
     void Update()
@@ -79,6 +92,43 @@ public class PlayerControler : MonoBehaviour
                 _moveDirection.y = jumpSpeed;
                 _ableToWallRun = true;
                 _characterController.DisableGroundCheck();
+            }
+
+            if (_input.y < 0f)
+            {
+                if (!isDucking && !isCreeping)
+                {
+                    isDucking = true;
+                    _capsuleCollider.size = new Vector2(_capsuleCollider.size.x, _capsuleCollider.size.y / 2);
+                    _spriteRenderer.sprite = Resources.Load<Sprite>("directionSpriteUp_crouching");
+                    transform.position = new Vector2(transform.position.x, transform.position.y - (_originalColliderSize.y / 4));
+                }
+            }
+            else
+            {
+                if (isDucking || isCreeping)
+                {
+                    RaycastHit2D hitCeiling = Physics2D.CapsuleCast(_capsuleCollider.bounds.center, transform.localScale, 
+                        CapsuleDirection2D.Vertical, 0f, Vector2.up, _originalColliderSize.y / 2, _characterController.layerMask);
+
+                    if (!hitCeiling.collider)
+                    {
+                        _capsuleCollider.size = _originalColliderSize;
+                        _spriteRenderer.sprite = Resources.Load<Sprite>("directionSpriteUp");
+                        transform.position = new Vector2(transform.position.x, transform.position.y + (_originalColliderSize.y / 4));
+                        isCreeping = false;
+                        isDucking = false;
+                    }
+                }
+            }
+
+            if (isDucking && _input.x != 0)
+            {
+                isCreeping = true;
+            }
+            else
+            {
+                isCreeping = false;
             }
         }
         else   // in the air
@@ -155,19 +205,39 @@ public class PlayerControler : MonoBehaviour
                 StartCoroutine("WallRunWaiter");
             }
 
-            CravityCalculation();
+            GravityCalculation();
         }
 
         _characterController.Move(_moveDirection * Time.deltaTime);
     }
 
-    private void CravityCalculation()
+    private void GravityCalculation()
     {
         if (_moveDirection.y > 0f && _characterController.above)
         {
             _moveDirection.y = 0f;
         }
-        _moveDirection.y -= gravity * Time.deltaTime;
+
+        if (canWallSlide && (_characterController.left || _characterController.right))
+        {
+            if (_characterController.hitWallThisFrame)
+            {
+                _moveDirection.y = 0f;
+            }
+
+            if (_moveDirection.y <= 0)
+            {
+                _moveDirection.y -= gravity * wallSlideAmout * Time.deltaTime;
+            }
+            else
+            {
+                _moveDirection.y -= gravity * Time.deltaTime;
+            }
+        }
+        else
+        {
+            _moveDirection.y -= gravity * Time.deltaTime;
+        }
     }
 
     public void OnMovement(InputAction.CallbackContext context)
@@ -205,7 +275,7 @@ public class PlayerControler : MonoBehaviour
         isWallRunning = true;
         yield return new WaitForSeconds(0.5f);
         isWallRunning = false;
-        _ableToWallRun = false; //이거 안되는데 이게 뭐지 미친
+        _ableToWallRun = false; //이거 안되는데 이게 뭐지
     }
 
 

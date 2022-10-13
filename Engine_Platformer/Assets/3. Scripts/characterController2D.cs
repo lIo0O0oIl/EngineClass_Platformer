@@ -2,6 +2,7 @@ using GlobalType;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem.HID;
 
 public class characterController2D : MonoBehaviour
 {
@@ -13,7 +14,9 @@ public class characterController2D : MonoBehaviour
     public bool above;
     public bool left;
     public bool right;
+
     public GroundType groundType;
+    public bool hitWallThisFrame;
 
     private Vector2 _slopeNormal;
     private float _slopArgle;
@@ -29,6 +32,7 @@ public class characterController2D : MonoBehaviour
     RaycastHit2D[] _raycastHits = new RaycastHit2D[3];
 
     private bool _disableGroundCheck;
+    private bool _noSliedCollisionLastFrame;
 
     // Start is called before the first frame update
     void Start()
@@ -40,6 +44,8 @@ public class characterController2D : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
+        _noSliedCollisionLastFrame = !right && !left;
+
         _lastPosition = _rigidbody.position;
         if (_slopArgle != 0 && below)
         {
@@ -61,6 +67,15 @@ public class characterController2D : MonoBehaviour
         }
 
         CheckOtherCollision();
+
+        if ((right || left) && _noSliedCollisionLastFrame)
+        {
+            hitWallThisFrame = true;
+        }
+        else
+        {
+            hitWallThisFrame = false;
+        }
     }
 
     public void Move(Vector2 movement)
@@ -136,55 +151,6 @@ public class characterController2D : MonoBehaviour
             groundType = GroundType.none;
             below = false;
         }
-
-        #region Àü ÄÚµå
-        /*Vector2 raycastOrgin = _rigidbody.position - new Vector2(0, _capsuleCollider.size.y * .5f);
-
-        _raycastPosition[0] = raycastOrgin + (Vector2.left * _capsuleCollider.size.x * .25f + Vector2.up * .1f);
-        _raycastPosition[1] = raycastOrgin;
-        _raycastPosition[2] = raycastOrgin + (Vector2.right * _capsuleCollider.size.x * .25f + Vector2.up * .1f);
-
-        DrawDebugRays(Vector2.down, Color.green);
-
-        int numberofGroundHits = 0;
-
-        for (int i = 0; i < _raycastPosition.Length; i++)
-        {
-            RaycastHit2D hit = Physics2D.Raycast(_raycastPosition[i], Vector2.down, raycastDistance, layerMask);
-
-            if (hit.collider)
-            {
-                _raycastHits[i] = hit;
-                numberofGroundHits++;
-                _slopeNormal = hit.normal;
-                _slopArgle = Vector2.SignedAngle(_slopeNormal, Vector2.up);
-                // groundType = DetermineGroundType(hit.collider);
-            }
-        }
-
-        if (numberofGroundHits > 0)
-        {
-            
-            if (_raycastHits[1].collider)
-            {
-                groundType = DetermineGroundType(_raycastHits[1].collider);
-            }
-
-            if (_slopArgle > slopeAngleLimit || _slopArgle < -slopeAngleLimit)
-            {
-                below = false;
-            }
-            else
-            {
-                below = true;
-            }
-        }
-        else
-        {
-            below = false;
-            groundType = GroundType.none;
-        }*/
-        #endregion
     }
 
     private GroundType DetermineGroundType(Collider2D collider)
