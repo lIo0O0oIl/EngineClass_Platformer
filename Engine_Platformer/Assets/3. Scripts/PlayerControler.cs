@@ -17,6 +17,8 @@ public class PlayerControler : MonoBehaviour
     public float yWallJumpSpeed = 15f;
     public float wallRunSpeed = 8f;
     public float wallSlideAmout = 0.1f;
+    public float dashSpeed = 40f;
+    public float dashTime = 0.2f;
 
     //Player Abilities
     [Header("Player Abilities")]
@@ -25,6 +27,8 @@ public class PlayerControler : MonoBehaviour
     public bool canWallJump;
     public bool canWallRun;
     public bool canWallSlide;
+    public bool canAirDash;
+    public bool canGroundDesh;
 
     //Player states
     [Header("Player States")]
@@ -36,6 +40,7 @@ public class PlayerControler : MonoBehaviour
     public bool isWallSliding;
     public bool isDucking;
     public bool isCreeping;
+    public bool isDashing;
 
     //input flags
     bool _startJump;
@@ -199,6 +204,7 @@ public class PlayerControler : MonoBehaviour
             {
                 if (_input.y > 0f && _ableToWallRun)
                 {
+                    Debug.Log("점프했담");  //벽 점프 안되는데...
                     _moveDirection.y = wallRunSpeed;
                 }
 
@@ -261,6 +267,11 @@ public class PlayerControler : MonoBehaviour
 
             Debug.Log("점프끝");
         }
+    }
+
+    public void OnDash(InputAction.CallbackContext context)
+    {
+
     }
 
     IEnumerator WallJumpWaiter()
